@@ -3,7 +3,7 @@ require "spec_helper"
 describe "building a LiveResource" do
 
   let(:builder) do
-    LiveResource::Builder.new(resource_name)
+    LiveResource::Builder.new(resource_name, [LiveResource::Test::DependencyDouble])
   end
 
   let(:resource_name) { :user }
@@ -16,7 +16,7 @@ describe "building a LiveResource" do
   let(:identifier_block_return_value) { { a: 'b' } }
   let(:identifier_block) do
     # Preserve references to let'ed values inside Proc scope
-    _identifier_block_invocations = identifier_block_invocations
+    _identifier_block_invocations  = identifier_block_invocations
     _identifier_block_return_value = identifier_block_return_value
 
     Proc.new { |*args| _identifier_block_invocations << args; _identifier_block_return_value }
@@ -69,7 +69,7 @@ describe "building a LiveResource" do
       let(:dependency_block_return_value) { { a: 'b' } }
       let(:dependency_block) do
         # Preserve references to let'ed values inside Proc scope
-        _dependency_block_invocations = dependency_block_invocations
+        _dependency_block_invocations  = dependency_block_invocations
         _dependency_block_return_value = dependency_block_return_value
 
         Proc.new { |*args| _dependency_block_invocations << args; _dependency_block_return_value }
@@ -78,12 +78,15 @@ describe "building a LiveResource" do
       expect_it { to depend_on(dependency_target) }
 
       context 'and the dependency is invoked' do
-        subject { dependency.invoke event, *context }
+        subject { dependency.invoke *context }
+
+        let(:dependency) { resource.dependencies.first }
+        let(:context) { [:a, 2, true] }
 
         it 'should invoke the dependency block with the given context' do
           subject
           expect(dependency_block_invocations.length).to be 1
-          expect(dependency_block_invocations.first).to eq args
+          expect(dependency_block_invocations.first).to eq context
         end
       end
     end
