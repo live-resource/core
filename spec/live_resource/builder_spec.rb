@@ -2,8 +2,9 @@ require "spec_helper"
 
 describe LiveResource::Builder do
 
-  let(:builder) { LiveResource::Builder.new(resource_name) }
+  let(:builder) { LiveResource::Builder.new(resource_name, dependency_types) }
   let(:resource_name) { [:some, :thing] }
+  let(:dependency_types) {}
 
   describe "#initialize" do
     subject { builder }
@@ -27,20 +28,58 @@ describe LiveResource::Builder do
     end
   end
 
-  #describe "#depends_on" do
-  #  subject { builder.depends_on(target, *events, &block) }
-  #
-  #  let(:target) { class1 }
-  #  let(:events) { [:after_create, :after_save] }
-  #  let(:block) { Proc.new {} }
-  #
-  #  let(:class1) { Class.new(ActiveRecord::Base) }
-  #
-  #  it "should set up the dependency on the given model classes" do
-  #    builder.resource.should_receive(:depends_on).with(target, events, block)
-  #    subject
-  #  end
-  #end
+  describe "#depends_on" do
+    subject { builder.depends_on(target, &block) }
+
+    let(:target) { :some_component }
+    let(:block) { Proc.new {} }
+    let(:dependency_types) { [dependency_type_1, dependency_type_2, dependency_type_3] }
+
+    let(:dependency_type_1) { double('Dependency Type 1', accepts_target?: false) }
+    let(:dependency_type_2) { double('Dependency Type 2', accepts_target?: true, new: nil) }
+    let(:dependency_type_3) { double('Dependency Type 3', accepts_target?: false) }
+
+    it 'should test each dependency type up to the first one which accepts the target' do
+      dependency_type_1.should_receive(:accepts_target?).with(target)
+      dependency_type_2.should_receive(:accepts_target?).with(target)
+      dependency_type_3.should_not_receive(:accepts_target?)
+      subject
+    end
+
+    context 'when one of the dependency types accepts the target' do
+      let(:resource) { double(LiveResource::Resource, dependencies: []) }
+      let(:dependency) { double(LiveResource::Dependency) }
+
+      before do
+        resource_subclass = double(Class, new: resource)
+        Class.stub(new: resource_subclass)
+        dependency_type_2.stub(new: dependency)
+      end
+
+      context 'and no extra arguments are given' do
+        it 'should instantiate the dependency type that accepts the target' do
+          dependency_type_2.should_receive(:new).with(resource, target, block)
+          subject
+        end
+      end
+
+      context 'and some extra arguments are given' do
+        subject { builder.depends_on(target, *args, &block) }
+
+        let(:args) { [:a, 2, true] }
+
+        it 'should instantiate the dependency type that accepts the target with the extra arguments' do
+          dependency_type_2.should_receive(:new).with(resource, target, block, *args)
+          subject
+        end
+      end
+
+      it "should add the result to the Resource's dependencies collection" do
+        subject
+        expect(resource.dependencies).to include(dependency)
+      end
+    end
+  end
 
   describe "#identifier" do
     subject { builder.identifier(&block) }
@@ -49,23 +88,7 @@ describe LiveResource::Builder do
 
     it "should define a new identifier method on the resource subclass" do
       subject
-      expect(builder.resource.identifier(1,2)).to eq([1, 2])
-    end
-  end
-
-  describe "#resource_method" do
-    subject { builder.resource_method }
-
-    it "should return a Proc" do
-      expect(subject).to be_a(Proc)
-    end
-
-    describe "the Proc" do
-      subject { builder.resource_method.call }
-
-      it "should return the resource" do
-        expect(subject).to be(builder.resource)
-      end
+      expect(builder.resource.identifier(1, 2)).to eq([1, 2])
     end
   end
 
