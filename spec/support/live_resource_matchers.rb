@@ -22,7 +22,7 @@ module LiveResourceMatchers
     end
 
     def description
-      "depend on #{@for_events.join(',')} events from #{@target}"
+      "depend on #{@target.inspect}"
     end
 
     def for_events(*events)
