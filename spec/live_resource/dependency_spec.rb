@@ -1,10 +1,11 @@
 require "spec_helper"
 
 describe LiveResource::Dependency do
-  let(:dependency) { LiveResource::Dependency.new(resource, proc) }
+  let(:dependency) { LiveResource::Dependency.new(resource, target, proc) }
 
   let(:resource) { double(LiveResource::Resource) }
-  let(:proc) { double(Proc) }
+  let(:target) { :some_component }
+  let(:proc) {}
 
   describe "watch" do
 
@@ -22,18 +23,29 @@ describe LiveResource::Dependency do
     let(:context) { [double(), double()] }
     let(:resource) { double(LiveResource::Resource, name: "blah") }
 
-    before do
-      proc.stub_chain(:bind, :call)
+    let(:proc_invocations) { [] }
+    let(:proc_return_value) { { a: 'b' } }
+    let(:proc) do
+      # Preserve references to let'ed values inside Proc scope
+      _proc_invocations  = proc_invocations
+      _proc_return_value = proc_return_value
+
+      Proc.new do |*args|
+        _proc_invocations << { :self => self, :args => args }
+        _proc_return_value
+      end
     end
 
-    it "should bind the proc to the resource" do
-      proc.should_receive(:bind).with(resource)
+    it "should execute the proc in the context of the resource" do
       subject
+      expect(proc_invocations.length).to be 1
+      expect(proc_invocations.first[:self]).to be resource
     end
 
-    it "should invoke the proc with the context arguments" do
-      proc.bind.should_receive(:call).with(*context)
+    it "should pass the context to the proc" do
       subject
+      expect(proc_invocations.length).to be 1
+      expect(proc_invocations.first[:args]).to eq context
     end
   end
 end

@@ -1,13 +1,16 @@
 module LiveResource
 
   class Dependency
-    def initialize(resource, proc)
+    attr_reader :target
+
+    def initialize(resource, target, proc)
       @resource = resource
       @proc     = proc
+      @target   = target
     end
 
     def invoke(*context)
-      @proc.bind(@resource).call(*context)
+      @resource.instance_exec(*context, &@proc)
     end
 
     def watch
