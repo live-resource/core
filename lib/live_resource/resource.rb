@@ -5,7 +5,7 @@ module LiveResource
 
     def initialize(name)
       @name = name
-      @dependencies = Hash.new { |h,k| h[k] = [] }
+      @dependencies = []
     end
 
     def identifier(*context)
