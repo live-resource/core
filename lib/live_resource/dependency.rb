@@ -1,34 +1,17 @@
 module LiveResource
 
   class Dependency
-    attr_reader :events
-
-    def initialize(resource, events, block)
+    def initialize(resource, proc)
       @resource = resource
-      @proc     = block
-      @events   = events
+      @proc     = proc
     end
 
-    def invoke(event, *context)
-      case @proc.arity
-        when 0
-          @proc.bind(@resource).call()
-        when context.length
-          @proc.bind(@resource).call(*context)
-        else
-          context.push(event)
-          @proc.bind(@resource).call(*context)
-      end
+    def invoke(*context)
+      @proc.bind(@resource).call(*context)
     end
 
     def watch
-      @events.each do |event|
-        observe(event)
-      end
-    end
-
-    def watching?(events)
-      @events == events
+      raise "Implement this method in a subclass, use it to set up hooks etc."
     end
   end
 
