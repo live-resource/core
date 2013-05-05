@@ -10,5 +10,17 @@ def require_tree(path)
 end
 
 require_tree '../lib'
+require_tree 'support'
 
-#LiveResource.register_protocol LiveResource::Test::DummyProtocol.new
+RSpec.configure do |config|
+  config.include LiveResourceMatchers
+
+  # Alias the existing one-liner syntax to #expect_it, so that lines like the following will work:
+  #   expect_it { to be(:something) }
+  config.alias_example_to :expect_it
+end
+
+RSpec::Core::ExampleGroup.module_eval do
+  alias to should
+  alias to_not should_not
+end
