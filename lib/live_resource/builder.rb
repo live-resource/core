@@ -4,10 +4,10 @@ module LiveResource
   class Builder
     attr_reader :resource
 
-    def initialize(resource_name, dependency_types)
+    def initialize(resource_name, protocol, dependency_types)
       @dependency_types = dependency_types
       @resource_class   = Class.new(Resource) # This creates an anonymous subclass of Resource
-      @resource         = @resource_class.new(resource_name)
+      @resource         = @resource_class.new(resource_name, protocol)
     end
 
     def depends_on(target, *args, &block)

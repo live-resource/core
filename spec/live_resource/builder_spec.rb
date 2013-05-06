@@ -2,8 +2,9 @@ require "spec_helper"
 
 describe LiveResource::Builder do
 
-  let(:builder) { LiveResource::Builder.new(resource_name, dependency_types) }
+  let(:builder) { LiveResource::Builder.new(resource_name, protocol, dependency_types) }
   let(:resource_name) { [:some, :thing] }
+  let(:protocol) { double(LiveResource::Protocol) }
   let(:dependency_types) {}
 
   describe "#initialize" do
@@ -23,7 +24,7 @@ describe LiveResource::Builder do
     end
 
     it "should intialize a new instance of the Resource subclass" do
-      resource_class.should_receive(:new).with(resource_name)
+      resource_class.should_receive(:new).with(resource_name, protocol)
       subject
     end
   end
