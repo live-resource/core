@@ -3,7 +3,7 @@ require "spec_helper"
 describe "building a LiveResource" do
 
   let(:builder) do
-    LiveResource::Builder.new(resource_name, [LiveResource::Test::DependencyDouble])
+    LiveResource::Builder.new(resource_name, protocol, [LiveResource::Test::DependencyDouble])
   end
 
   let(:resource_name) { :user }
@@ -12,21 +12,7 @@ describe "building a LiveResource" do
     builder.resource
   end
 
-  let(:identifier_block_invocations) { [] }
-  let(:identifier_block_return_value) { { a: 'b' } }
-  let(:identifier_block) do
-    # Preserve references to let'ed values inside Proc scope
-    _identifier_block_invocations  = identifier_block_invocations
-    _identifier_block_return_value = identifier_block_return_value
-
-    Proc.new { |*args| _identifier_block_invocations << args; _identifier_block_return_value }
-  end
-
-  # When a dependency fires, the block supplied to the builder should fire
-  #                          the block should be able to publish protocol messages
-  # Dependencies should be inspectable
-  # Invoking the "identifier" method of the resource should invoke the supplied block
-  #   - and return its value
+  let(:protocol) { LiveResource::Test::ProtocolDouble.new }
 
   describe 'the created resource' do
 
@@ -39,6 +25,16 @@ describe "building a LiveResource" do
     end
 
     context 'when an identifier block is given' do
+      let(:identifier_block_invocations) { [] }
+      let(:identifier_block_return_value) { { a: 'b' } }
+      let(:identifier_block) do
+        # Preserve references to let'ed values inside Proc scope
+        _identifier_block_invocations  = identifier_block_invocations
+        _identifier_block_return_value = identifier_block_return_value
+
+        Proc.new { |*args| _identifier_block_invocations << args; _identifier_block_return_value }
+      end
+
       before do
         builder.identifier(&identifier_block)
       end
@@ -87,6 +83,25 @@ describe "building a LiveResource" do
           subject
           expect(dependency_block_invocations.length).to be 1
           expect(dependency_block_invocations.first).to eq context
+        end
+
+        describe 'the block' do
+          let(:dependency_block) do
+            ->(a,b,c) { push('hello', 'world!') }
+          end
+
+          let(:identifier_block) do
+            ->(a, b) { [a, b].join(', ') }
+          end
+
+          before do
+            builder.identifier(&identifier_block)
+          end
+
+          it 'should be able to publish a resource reset' do
+            subject
+            expect(protocol.messages).to include({ :type => 'resource:reset', ':resource_id' => 'hello, world!' })
+          end
         end
       end
     end
