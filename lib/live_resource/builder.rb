@@ -12,6 +12,8 @@ module LiveResource
 
     def depends_on(target, *args, &block)
       dependency_type = first_dependency_type_accepting(target)
+      raise "No dependency type is registered that accepts #{target.inspect}" unless dependency_type
+
       dependency = dependency_type.new(@resource, target, block, *args)
       @resource.dependencies << dependency
     end
@@ -28,6 +30,7 @@ module LiveResource
 
     def first_dependency_type_accepting(target)
       @dependency_types.each { |type| return type if type.accepts_target? target }
+      nil
     end
   end
 end

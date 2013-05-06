@@ -47,6 +47,16 @@ describe LiveResource::Builder do
       subject
     end
 
+    context 'when no dependency types accept the target' do
+      before do
+        dependency_type_2.stub(accepts_target?: false)
+      end
+
+      it 'should raise an error' do
+        expect(-> { subject }).to raise_error("No dependency type is registered that accepts #{target.inspect}")
+      end
+    end
+
     context 'when one of the dependency types accepts the target' do
       let(:resource) { double(LiveResource::Resource, dependencies: []) }
       let(:dependency) { double(LiveResource::Dependency) }
