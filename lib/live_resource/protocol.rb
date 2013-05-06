@@ -1,44 +1,30 @@
 module LiveResource
   module Protocol
-    def publish_resource_reset(*context)
-      publish_message('resource:reset', {}, *context)
+
+    def publish_resource_reset(identifier)
+      publish_message(identifier, 'resource:reset')
     end
 
-    def publish_property_change(property, value, *context)
-      publish_message('resource:property:change', {
+    def publish_property_change(identifier, property, value)
+      publish_message(identifier, 'resource:property:change', {
           property: property,
           value: value
-      }, *context)
+      })
     end
 
-    def publish_collection_insert(property, element, *context)
-      publish_message('resource:collection:insert', {
+    def publish_collection_insert(identifier, property, element)
+      publish_message(identifier, 'resource:collection:insert', {
           property: property,
           element: element
-      }, *context)
+      })
     end
 
-    def publish_collection_remove(property, element, *context)
-      publish_message('resource:collection:remove', {
+    def publish_collection_remove(identifier, property, element)
+      publish_message(identifier, 'resource:collection:remove', {
           property: property,
           element: element
-      }, *context)
+      })
     end
 
-    private
-
-    #def publish_message(type, params, *context)
-    #  channel_id = resource_id = identifier(*context)
-    #
-    #  message = params.merge({
-    #      :type           => type,
-    #      :':resource_id' => resource_id,
-    #  })
-    #
-    #  Rails.logger.debug("LiveResource::Protocol#publish type='#{type}', channel_id='#{channel_id}'")
-    #  Rails.logger.debug(message.inspect)
-    #
-    #  PubnubHelper.publish(channel_id, message)
-    #end
   end
 end
