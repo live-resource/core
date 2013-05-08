@@ -25,27 +25,27 @@ Describe the `profiles#show` resource.
 ```ruby
 profiles_show_resource = LiveResource::Builder.new(:profiles_show, ...)
 
-# How do we identify individual `profile_show_resource`s?
+# How do we identify individual profile_show_resources?
 # This allows us to describe changes to a particular instance of the resource.
 profiles_show_resource.identifier { |profile| "/profiles/#{profile.id}" }
 
-# If a Profile changes, there will be a corresponding `profiles_show_resource` instance that changes.
-# In other words, when a Profile changes, push an update to the `profiles_show_resource` identified by the calling the
-# `#identifier` block we just defined and passing in the modified `profile` instance.
+# If a Profile changes, there will be a corresponding profiles_show_resource instance that changes.
+# In other words, when a Profile changes, push an update to the profiles_show_resource identified by the calling the
+# #identifier block we just defined and passing in the modified profile instance.
 profiles_show_resource.depends_on(Profile) { |profile| push(profile) }
 ```
 
 ## Integrations
 
 * [Rails](http://github.com/live-resource/rails)
-** Allows you to define live resources inline in controllers
-** Hooks into Rails' configuration
+  * Allows you to define live resources inline in controllers
+  * Hooks into Rails' configuration
 * [ActiveRecord](http://github.com/live-resource/rails)
-** Adds support for specifying dependencies on ActiveRecord model classes
+  * Adds support for specifying dependencies on ActiveRecord model classes
 * [Pubnub](http://github.com/live-resource/pubnub)
-** Adds support for pushing updates via Pubnub
+  * Adds support for pushing updates via Pubnub
 * [RSpec](http://github.com/live-resource/rspec)
-** Adds support for testing live resources in RSpec
+  * Adds support for testing live resources in RSpec
 
 ## Installation
 
