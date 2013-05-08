@@ -11,6 +11,7 @@ end
 
 require_tree '../lib'
 require_tree 'support'
+require 'live_resource/rspec'
 
 module DescribeHelpers
   def expect_its(*args, &block)
@@ -19,7 +20,7 @@ module DescribeHelpers
 end
 
 RSpec.configure do |config|
-  config.include LiveResourceMatchers
+  config.include LiveResource::RSpec
 
   # Alias the existing one-liner syntax to #expect_it, so that lines like the following will work:
   #   expect_it { to be(:something) }
