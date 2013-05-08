@@ -4,15 +4,23 @@ module LiveResource
   class Builder
     attr_reader :resource
 
-    def initialize(resource_name, protocol, dependency_types)
+    def initialize(resource_name, protocol, dependency_types, extensions = nil)
       @dependency_types = dependency_types
-      @resource_class   = Class.new(Resource) # This creates an anonymous subclass of Resource
+      @resource_class   = Class.new(Resource) do # This creates an anonymous subclass of Resource
+        include extensions if extensions
+      end
       @resource         = @resource_class.new(resource_name, protocol)
     end
 
     def depends_on(target, *args, &block)
       dependency_type = first_dependency_type_accepting(target)
-      raise "No dependency type is registered that accepts #{target.inspect}" unless dependency_type
+
+      unless dependency_type
+        raise <<-EOF
+No dependency type is registered that accepts #{target.inspect}
+Registered dependency types are: #{@dependency_types.inspect}
+        EOF
+      end
 
       dependency = dependency_type.new(@resource, target, block, *args)
       @resource.dependencies << dependency

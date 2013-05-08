@@ -2,10 +2,11 @@ require "spec_helper"
 
 describe LiveResource::Builder do
 
-  let(:builder) { LiveResource::Builder.new(resource_name, protocol, dependency_types) }
+  let(:builder) { LiveResource::Builder.new(resource_name, protocol, dependency_types, extension_module) }
   let(:resource_name) { [:some, :thing] }
   let(:protocol) { double(LiveResource::Protocol) }
   let(:dependency_types) {}
+  let(:extension_module) {}
 
   describe "#initialize" do
     subject { builder }
@@ -13,19 +14,44 @@ describe LiveResource::Builder do
     let(:resource_class) { double(Class, :new => resource) }
     let(:resource) { double(LiveResource::Resource) }
 
-    before do
-      Class.stub(:new).and_return(resource_class)
-      LiveResource::Resource.stub(:new).and_return(resource)
+    describe 'creating the new Resource' do
+      before do
+        Class.stub(:new).and_return(resource_class)
+        LiveResource::Resource.stub(:new).and_return(resource)
+      end
+
+      it "should create a new Resource class" do
+        Class.should_receive(:new).with(LiveResource::Resource)
+        subject
+      end
+
+      it "should initialize a new instance of the Resource subclass" do
+        resource_class.should_receive(:new).with(resource_name, protocol)
+        subject
+      end
     end
 
-    it "should create a new Resource class" do
-      Class.should_receive(:new).with(LiveResource::Resource)
-      subject
-    end
+    context 'when an extension module is supplied' do
+      let(:resource_class) do
+        class DummyClass
+          def initialize(*args)
+          end
+        end
+        DummyClass
+      end
 
-    it "should intialize a new instance of the Resource subclass" do
-      resource_class.should_receive(:new).with(resource_name, protocol)
-      subject
+      let(:extension_module) do
+        module ExtensionModule
+          def some_extension_method
+          end
+        end
+        ExtensionModule
+      end
+
+      it 'should mix it into the new subclass' do
+        subject
+        expect(builder.resource).to respond_to(:some_extension_method)
+      end
     end
   end
 
@@ -53,7 +79,7 @@ describe LiveResource::Builder do
       end
 
       it 'should raise an error' do
-        expect(-> { subject }).to raise_error("No dependency type is registered that accepts #{target.inspect}")
+        expect(-> { subject }).to raise_error(/no dependency/i)
       end
     end
 
