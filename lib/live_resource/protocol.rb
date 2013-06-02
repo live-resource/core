@@ -1,4 +1,13 @@
 module LiveResource
+
+  # Protocols are used by the Resource class to notify people interested in the resource that something's happened.
+  # This module defines the public behaviour of a protocol, in terms of the internal method #publish_message.
+  #
+  # Protocol classes must implement the #publish_message and #encode_identifier methods.
+  #  - #publish_message(resource_id, message) publishes `message` to the resource matching the identifier (where
+  #    message is a hash)
+  #  - #encode_identifier(resource_id) transforms an identifier string as appropriate for the protocol (e.g.
+  #    sanitizing unsafe characters or obfuscating the actual resource ID)
   module Protocol
 
     def publish_resource_reset(identifier)

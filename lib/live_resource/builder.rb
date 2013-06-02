@@ -30,7 +30,7 @@ Registered dependency types are: #{@dependency_types.inspect}
       @identifier_proc = block
 
       @resource_class.class_eval do
-        define_method(:identifier, &block)
+        define_method(:_identifier, &block)
       end
     end
 

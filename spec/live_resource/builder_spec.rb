@@ -125,7 +125,7 @@ describe LiveResource::Builder do
 
     it "should define a new identifier method on the resource subclass" do
       subject
-      expect(builder.resource.identifier(1, 2)).to eq([1, 2])
+      expect(builder.resource._identifier(1, 2)).to eq([1, 2])
     end
   end
 

@@ -10,7 +10,9 @@ module LiveResource
     end
 
     def identifier(*context)
-      raise "You must define an identifier method for the resource '#{@name}'"
+      raise "You must define an identifier method for the resource '#{@name}'" unless respond_to?(:_identifier)
+      raw_identifier = _identifier(*context)
+      @protocol.encode_identifier(raw_identifier)
     end
 
     def push(*context)
